@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build Changelog
         id: build_changelog
@@ -38,15 +38,15 @@ jobs:
           cat CURRENT_CHANGELOG.md CHANGELOG_BODY.md >> TEMP_CHANGELOG.md
           cat TEMP_CHANGELOG.md CHANGELOG.md > NEW_CHANGELOG.md
 
-          git config user.name ${{ secrets.NVAUTO_USER }}
-          git config user.email ${{ secrets.NVAUTO_EMAIL }}
+          git config user.name "spark-rapids automation"
+          git config user.email "70000568+nvauto@users.noreply.github.com"
 
           git fetch origin main
           git checkout main
           mv NEW_CHANGELOG.md CHANGELOG.md
           git add CHANGELOG.md
           git commit -s -m "Update changelogs"
-          git push -f https://nvauto:${{ secrets.NVAUTO_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git main
+          git push -f https://pxli:${{ secrets.NVAUTO_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git main
 
       - name: Set Version Number
         id: set_version
@@ -55,20 +55,3 @@ jobs:
           VERSION=${VERSION#v}  # Remove 'v' prefix
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }} # Use the version number from the tag
-          release_name: ${{ github.ref }} # Use the version number as the release name
-          body: |
-            ## Packages
-            
-            - Maven Release: ${{ env.MAVEN_URL }}/${{ env.VERSION }}/
-            - PyPI Package: ${{ env.PYPI_URL }}/${{ env.VERSION }}/
-            
-            ## Changes
-            ${{ steps.build_changelog.outputs.changelog }}
-          draft: false
